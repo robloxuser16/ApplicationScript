@@ -1,0 +1,182 @@
+local Players = game:GetService("Players")
+local lighting = game:GetService("Lighting")
+local cycle = true 
+local moreCoins = 10
+
+Players.PlayerAdded:Connect(function(player)
+	print("New Player: " .. player.Name)
+	local leaderstats = Instance.new("Folder")
+	leaderstats.Parent = player
+	leaderstats.Name = "leaderstats"
+
+	local Coins= Instance.new("IntValue")
+	Coins.Name = "Coins"  
+	Coins.Value = moreCoins
+	Coins.Parent = leaderstats 
+
+	local function DayNight()
+		if cycle == true then
+			lighting.ClockTime = 14
+		else
+			lighting.ClockTime = 0  
+			Coins.Value = moreCoins + 10
+		end
+		cycle = not cycle
+	end
+
+
+	while true do
+		DayNight()
+		wait(10) 
+	end
+end)
+
+local condition = true
+local ClickButton = game.Workspace.Button.ClickDetector
+
+local Pets1 =
+	{
+		pet1 = game.ReplicatedStorage.Pets1.Pet,
+		pet2 = game.ReplicatedStorage.Pets1.Pet2
+	}
+
+local Pets2 =
+	{
+		pet3 = game.ReplicatedStorage.Pets2.Pet3,
+		pet4 = game.ReplicatedStorage.Pets2.Pet4
+	}
+
+local PetMetatable =
+	{
+		__index = function(P1, P2, NoPets)
+			return "No Pets"
+		end
+	}
+
+setmetatable(Pets1, PetMetatable)
+setmetatable(Pets2, PetMetatable)
+
+print(Pets2.Pet10)
+
+local activePets = {}
+
+function PositionFunction()
+	while true do
+		for i = 1, #activePets do
+			local player = activePets[i].player
+			if player.Character:FindFirstChild("HumanoidRootPart") then
+				if i == 1 then
+					local playerPost = player.Character.HumanoidRootPart.Position
+					local vectorPosition = Vector3.new(0, 0, -4)
+					local spawnPetPosition = playerPost + vectorPosition
+					activePets[i].pet:SetPrimaryPartCFrame(CFrame.new(spawnPetPosition, playerPost)) 
+				else
+					local previousPetPosition = activePets[i-1].pet.PrimaryPart.Position
+					local offset = Vector3.new(0, 0, -2)
+					local spawnPetPosition = previousPetPosition + offset
+					activePets[i].pet:SetPrimaryPartCFrame(CFrame.new(spawnPetPosition, player.Character.HumanoidRootPart.Position))
+				end
+			else
+				warn("Player is nil in PositionFunction")
+			end
+		end
+		wait(0.1)
+	end
+end
+
+if moreCoins >= 1 then
+	ClickButton.MouseClick:Connect(function(player)
+		local leaderstats = player:FindFirstChild("leaderstats")
+		local Coins = leaderstats:FindFirstChild("Coins")
+
+		if moreCoins <= 0 then
+			print("Not have enough coins for click the button")
+			return
+		end
+
+
+		Coins.Value = moreCoins
+		moreCoins = moreCoins - 1
+		print("Coins restantes: " .. moreCoins)
+
+		if moreCoins <= 0 then
+			condition = false
+		end
+		
+		if not player.Character then
+			warn("Player.Character is nil")
+			return
+		end
+
+		local RandomNumber = math.random(100)
+		local RandomNumber2 = math.random(100)
+
+		while condition == true do
+			if (RandomNumber <= 25 and RandomNumber2 <= 25) or
+				(RandomNumber >= 26 and RandomNumber <= 50 and RandomNumber2 >= 26 and RandomNumber2 <= 50) or
+				(RandomNumber >= 51 and RandomNumber <= 75 and RandomNumber2 >= 51 and RandomNumber2 <= 75) or
+				(RandomNumber >= 76 and RandomNumber2 >= 76) then
+				print("Same range, creando un nuevo RandomNumber2")
+				RandomNumber2 = math.random(100)
+			else
+				condition = false 
+			end
+		end
+
+		local function getSpawnPosition(player)
+			if not player.Character:FindFirstChild("HumanoidRootPart") then
+				warn("Falta HumanoidRootPart")
+				return CFrame.new()  
+			end
+
+			local playerPost = player.Character.HumanoidRootPart.Position
+			local vectorPosition = Vector3.new(0, 0, -4)
+			local spawnPosition = playerPost + vectorPosition
+
+			return CFrame.new(spawnPosition, playerPost) 
+		end
+
+		function createPet1()
+			local pet1 
+			if RandomNumber <= 25 then
+				pet1 = Pets1.pet1:Clone()
+			elseif RandomNumber >= 26 and RandomNumber <= 50 then
+				pet1 = Pets1.pet2:Clone()
+			elseif RandomNumber >= 51 and RandomNumber <= 75 then
+				pet1 = Pets2.pet3:Clone()
+			else 
+				pet1 = Pets2.pet4:Clone()
+			end
+
+			pet1.Parent = game.Workspace
+			pet1:SetPrimaryPartCFrame(getSpawnPosition(player))
+			print("RandomNumber: ", RandomNumber)
+			table.insert(activePets, {pet = pet1, player = player})
+		end
+
+		function createPet2()
+			local pet2 
+			if RandomNumber2 <= 25 then
+				pet2 = Pets1.pet1:Clone()
+			elseif RandomNumber2 >= 26 and RandomNumber2 <= 50 then
+				pet2 = Pets1.pet2:Clone()
+			elseif RandomNumber2 >= 51 and RandomNumber2 <= 75 then
+				pet2 = Pets2.pet3:Clone()
+			else 
+				pet2 = Pets2.pet4:Clone()  
+			end
+
+			pet2.Parent = game.Workspace
+			pet2:SetPrimaryPartCFrame(getSpawnPosition(player))
+			print("RandomNumber2: ", RandomNumber2)
+			table.insert(activePets, {pet = pet2, player = player})
+		end
+
+		createPet1()
+		createPet2()
+
+		if #activePets == 2 then
+			spawn(PositionFunction)
+		end
+	end)
+end

@@ -3,6 +3,7 @@ local lighting = game:GetService("Lighting")
 local cycle = true 
 local moreCoins = 10
 
+-- Leaderstats Setup
 Players.PlayerAdded:Connect(function(player)
 	print("New Player: " .. player.Name)
 	local leaderstats = Instance.new("Folder")
@@ -14,6 +15,7 @@ Players.PlayerAdded:Connect(function(player)
 	Coins.Value = moreCoins
 	Coins.Parent = leaderstats 
 
+-- DayNight Function with increment of coins every night
 	local function DayNight()
 		if cycle == true then
 			lighting.ClockTime = 14
@@ -24,16 +26,18 @@ Players.PlayerAdded:Connect(function(player)
 		cycle = not cycle
 	end
 
-
+    -- DayNight Functions happends every 10 seconds
 	while true do
 		DayNight()
 		wait(10) 
 	end
 end)
 
+-- Just a variable to check if RandomNumber2 have other range than RandomNumber
 local condition = true
+-- Reference of ClickDetector in workspace button
 local ClickButton = game.Workspace.Button.ClickDetector
-
+-- Tables of pets
 local Pets1 =
 	{
 		pet1 = game.ReplicatedStorage.Pets1.Pet,
@@ -45,7 +49,7 @@ local Pets2 =
 		pet3 = game.ReplicatedStorage.Pets2.Pet3,
 		pet4 = game.ReplicatedStorage.Pets2.Pet4
 	}
-
+-- Just an expample of how metatables works
 local PetMetatable =
 	{
 		__index = function(P1, P2, NoPets)
@@ -58,8 +62,10 @@ setmetatable(Pets2, PetMetatable)
 
 print(Pets2.Pet10)
 
+-- List of pets generated on workspace
 local activePets = {}
 
+-- A function to put the pet in the correct position with cframe
 function PositionFunction()
 	while true do
 		for i = 1, #activePets do
@@ -84,48 +90,55 @@ function PositionFunction()
 	end
 end
 
-if moreCoins >= 1 then
+-- Condition to check if player have enought coins
+if moreCoins >= 0 then
+	--ClickDetector function
 	ClickButton.MouseClick:Connect(function(player)
 		local leaderstats = player:FindFirstChild("leaderstats")
 		local Coins = leaderstats:FindFirstChild("Coins")
 
+		-- If player not have enoight coins print: "Not have enough coins for click the button" on console
 		if moreCoins <= 0 then
 			print("Not have enough coins for click the button")
 			return
 		end
-
-
+		-- Remove 1 coin every time player clicks the button
 		Coins.Value = moreCoins
 		moreCoins = moreCoins - 1
 		print("Coins " .. moreCoins)
-
+		
+		-- If player don't have enought coins, pets can't continue with numbers generation
 		if moreCoins <= 0 then
 			condition = false
 		end
 		
+		-- If the person who click the button don't have character print:"Player.Character is nil"
 		if not player.Character then
 			warn("Player.Character is nil")
 			return
 		end
-
+		
+		-- Generate two random numbers in 0,10 with two variables
 		local RandomNumber = math.random(100)
 		local RandomNumber2 = math.random(100)
-
+		
+		-- If conition == is true every time check if RandomNumber and RandomNumber2 are on the same range, if is true generate again RandumNumber2
 		while condition == true do
 			if (RandomNumber <= 25 and RandomNumber2 <= 25) or
 				(RandomNumber >= 26 and RandomNumber <= 50 and RandomNumber2 >= 26 and RandomNumber2 <= 50) or
 				(RandomNumber >= 51 and RandomNumber <= 75 and RandomNumber2 >= 51 and RandomNumber2 <= 75) or
 				(RandomNumber >= 76 and RandomNumber2 >= 76) then
-				print("Same range, creando un nuevo RandomNumber2")
+				print("Same range, creating again RandomNumber2")
 				RandomNumber2 = math.random(100)
 			else
 				condition = false 
 			end
 		end
-
+		
+		-- Get the pet positionFunction and generate is on workspace behind the player
 		local function getSpawnPosition(player)
 			if not player.Character:FindFirstChild("HumanoidRootPart") then
-				warn("Falta HumanoidRootPart")
+				warn("Warn HumanoidRootPart is nil")
 				return CFrame.new()  
 			end
 
@@ -136,6 +149,7 @@ if moreCoins >= 1 then
 			return CFrame.new(spawnPosition, playerPost) 
 		end
 
+        -- Create a pet with RandomNumber result
 		function createPet1()
 			local pet1 
 			if RandomNumber <= 25 then
@@ -153,7 +167,7 @@ if moreCoins >= 1 then
 			print("RandomNumber: ", RandomNumber)
 			table.insert(activePets, {pet = pet1, player = player})
 		end
-
+		-- Create a pet with RandomNumber2 result
 		function createPet2()
 			local pet2 
 			if RandomNumber2 <= 25 then
@@ -174,10 +188,10 @@ if moreCoins >= 1 then
 
 		createPet1()
 		createPet2()
-
+		
+		-- If we have two pets in activepets, start positionfunction
 		if #activePets == 2 then
 			spawn(PositionFunction)
 		end
 	end)
 end
-
